@@ -1,0 +1,23 @@
+name: TellBlock
+main: beleche\TellBlock\TellBlock
+version: 0.0.1
+api: [1.0.0, 1.1.0, 2.0.0]
+description: TellBlock
+commands:
+ tb:
+  usage: "/tb [tell]"
+  permissions: tellblock.command.tb
+permissions:
+ tellblock:
+  default: op
+  description: "Allows using all the tellblock things"
+  children:
+   tellblock.command:
+    default: op
+    description: "Allows using all the tellblock commands"
+    children:
+     tellblock.command.tb:
+      default: true
+      description: "Allows see tellblock options"
+
+
