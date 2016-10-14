@@ -46,7 +46,7 @@ class zSpllef extends PluginBase implements Listener{
 	private static $instance = null;
 	
 	//Aqui declaramos no Array que vai ser responsavel por guardar todos os jogadores que bloquearam o tell explicarei o que é array mais para frente
-	private $tells = []
+	private $tells = [];
 	
 	//Essa funcão é chamada na hora de habilitar nosso plugin
     public function onEnable(){
@@ -151,12 +151,17 @@ class zSpllef extends PluginBase implements Listener{
 			Então usamos uma condicional IF = SE --- se a variável $args[1] foi definida, execute os camando de dentro dos colchetes
 			*/
 				if(isset($args[1])){
-					
+					if(isset($this->tells[strtolower($args[1])])){//aqui verificamos se o nome usado no tell está listado como bloqueado
+						//Esses comandos só serão executados se a condição for verdadeira
+						$event->setCancelled();//Aqui nos CANCELAMOS o envio do comando tell
+						$sender->sendMessage($this->logger . "O jogador que você tentou contactar decidiu não receber mensagens privadas.");//E aqui notificamos o jogador que o destinatário não receberá a mensagem.
+					}
 				}
 				break;// com o break finalizamos os comandos do caso "tell"
 			
 		}
 	}
+	//Aqui temos os comandos do nosso plugin, no caso /tb tell
 	public function onCommand(CommandSender $sender,Command $command,$label,array $args){
 		
 		switch($command)
@@ -165,7 +170,14 @@ class zSpllef extends PluginBase implements Listener{
 			if(isset($args[0])){
 				switch($args[0]){
 					case "tell":
-						
+						if(isset($this->tells[strtolower($args[0])])){
+							unset($this->tells[strtolower($args[0])]);
+							$sender->sendMessage($this->logger . "Agora você receberá mensagens privadas novamente.");
+						}else{
+							$this->tells[strtolower($args[0])] = 1;
+							$sender->sendMessage($this->logger . "Você acaba de bloquear todas as mensagens privadas.");
+							$sender->sendMessage($this->logger . "Para desbloquear use /tb tell.");
+						}
 						return true;
 				}
 				return true;
