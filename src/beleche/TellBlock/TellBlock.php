@@ -42,8 +42,13 @@ class zSpllef extends PluginBase implements Listener{
 	//Para não precisarmos escrever [TellBlock] todas as vezes que decidirmos enviar uma mensagem, usamos essa variável.
 	public $logger = "§3[TellBlock]§6 ";
 	
+	//Essa variável é usada para que outro plugin possa fazer acesso aos dados desse plugin, explicarei mais a frente
 	private static $instance = null;
 	
+	//Aqui declaramos no Array que vai ser responsavel por guardar todos os jogadores que bloquearam o tell explicarei o que é array mais para frente
+	private $tells = []
+	
+	//Essa funcão é chamada na hora de habilitar nosso plugin
     public function onEnable(){
     	@mkdir($this->getDataFolder());//aqui criamos a pasta do plugin caso ela não exista
         $this->saveDefaultConfig();
@@ -54,7 +59,7 @@ class zSpllef extends PluginBase implements Listener{
 		//Aqui estamos dizendo que esta variável vai conter todos os dados do arquivo config.yml
 		//Lembrando que, se vc não tiver o use pocketmine\utils\Config; vc não consegue chamar o new Config
 		//Dentro do Config temos 1 argumento que é o caminho do arquivo que queremos carregar
-		//No caso $this->getDataFolder() . "config.yml" - getDataFolder() retorna o caminho criado la na linha 48
+		//No caso $this->getDataFolder() . "config.yml" - getDataFolder() retorna o caminho criado la na linha 53
         $this->config = new Config($this->getDataFolder() . "config.yml");
 
         //$this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -63,41 +68,92 @@ class zSpllef extends PluginBase implements Listener{
 		
     }
     
+	//Essa função é usada para enviar mensagens no console
+	//Você pode usar Server::getInstance()->getLogger()->info("sua mensagem");
+	//Mas desta forma fica como um atalho.
 	public function logOnConsole($message){
 		$logger = Server::getInstance()->getLogger();
-		$logger->info("§3[TellBlock]§6 " . $message);
+		$logger->info($this->logger . $message);
 	}
+	//Quando nosso plugin é desabilitado ou o servidor é desligado, essa função é chamada
+	//Nela podemos colocar mensagens de finalização como também salvar os dados que são necessários
+	//Se seu plugin precisa salvar dados para que quando o servidor voltar regras continuem valendo
+	//É bom ter um save aqui nessa função.
     public function onDisable(){
 		$this->saveStatus();
         $this->logOnConsole(TextFormat::RED." Desabilitado !");
     }
-	public static function getInstance(){
-		return self::$instance;
-	}
+	
+	/*Como falei anteriormente a variavel $instance serve para fornecer dados a outros plugins
+	Para que isso seja possível, nós temos que dizer para essa variável tudo que acontece aqui
+	Então usamos a função a seguir.
+	*/
 	public function onLoad(){
 		self::$instance = $this;
 		
 	}
+	
+	/*E aqui temos a função responsável por fornecer os dados desse plugin a outros plugins
+	Se vc precisar de algum dado desse plugin bas criar um plugin e colocar nele a linha:
+	use beleche\TellBlock\TellBlock;
+	depois Chamar o plugin com a seguinte linha.
+	
+	TellBlock::getInstance();
+	
+	Em nosso plugin não teremos nenhum dado a fornecer, então por enquanto nada pode ser feito com essa linha.
+	Darei mais explicações quando tivermos algum dado a fornecer.
+	*/
+	public static function getInstance(){
+		return self::$instance;
+	}
+	
+	/*La na função onDisable() eu chamo a função saveStatus()
+	Faço isso em todos os plugins que desenvolvo, assim fica padrão, então se eu tiver algum dado a gravar para ser carregado nada
+	próxima vez que esse plugin for iniciado, vou colocar os códigos de save aqui.	
+	*/
 	public function saveStatus(){
 		
 	}
-	public function onPlayerCommand(PlayerCommandPreprocessEvent $event){
-		$message = $event->getMessage();
-		$command = substr($message, 1);
+	
+	/*
+	E aqui finalmente começamos a fazer nosso plugin trabalhar
+	PlayerCommandPreprocessEvent é chamado sempre que algum jogador executa algum comando ex. /help, /tell, /pay, /tp, /gamemode
+	Então como em nosso plugin queremos saber sempre que um jogador executar o /tell, vamos verificar qual comando o jogador executou
+	*/
+	public function onPlayerCommand(PlayerCommandPreprocessEvent $event){//$event contém todos os dados reponsáveis pelo comando do jogador
+		$message = $event->getMessage();//aqui temos a mensagem comleta escrita pelo jogador ex. /tell laurobeleche ola me da staff?
+		$command = substr($message, 1);//aqui removemos a "/" do inicio da frasa com o função substr($message, 1)
+		// após isso nosso comando está assim "tell laurobeleche ola me da staff?"
 
-		$args = explode(" ", $command);
-		$sender = $event->getPlayer();	
-		$cmd = $args[0];
-		$nome = $sender->getName();
+		$args = explode(" ", $command);//aqui usamos o explode(" ", $command) para separar as palavras criado a array $args
+		/*
+		Nossa a array está assim:
+		$args[0] => tell
+		$args[1] => laurobeleche
+		$args[2] => ola
+		$args[3] => me
+		$args[4] => da
+		$args[5] => staff?
+		*/
+		$sender = $event->getPlayer();//aqui descobrimos quem enviou o comando
+		$cmd = $args[0];//aqui definimos que a variável $cmd é igual a variável $args[0] ou seja "tell"
+		$nome = $sender->getName();//aqui nós pegamos o nome do jogador que enviou o comando
 		
-
-		switch($cmd)
+		/*
+		Para quem não conhece a função switch e como ela funciona sugiro que leiam esse link
+		http://php.net/manual/pt_BR/control-structures.switch.php
+		*/
+		switch($cmd)//Veja que a nossa condição do switch é a variável $cmd
 		{
-			case "tell":
+			case "tell"://aqui dizemos: Caso $cmd seja igual a "tell" execute os comando abaixo
+			/*
+			Aqui verificamos se existe a variável $args[1], pq se la em cima o comando foi só /tell, a variável $args[1] não será criada no explode
+			Então usamos uma condicional IF = SE --- se a variável $args[1] foi definida, execute os camando de dentro dos colchetes
+			*/
 				if(isset($args[1])){
 					
 				}
-				break;
+				break;// com o break finalizamos os comandos do caso "tell"
 			
 		}
 	}
