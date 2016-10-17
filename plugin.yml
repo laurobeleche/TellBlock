@@ -19,5 +19,3 @@ permissions:
      tellblock.command.tb:
       default: true
       description: "Allows see tellblock options"
-
-

@@ -32,7 +32,7 @@ use pocketmine\Player;
 -------------------------------------------------------------------------------------------------------------
 */
 
-class zSpllef extends PluginBase implements Listener{
+class TellBlock extends PluginBase implements Listener{
 	
 	//Nessa variável carrego o arquivo de configuração do plugin, o arquivo config.yml que fica na pasta do plugin
 	private $config;
@@ -51,7 +51,7 @@ class zSpllef extends PluginBase implements Listener{
 	//Essa funcão é chamada na hora de habilitar nosso plugin
     public function onEnable(){
     	@mkdir($this->getDataFolder());//aqui criamos a pasta do plugin caso ela não exista
-        $this->saveDefaultConfig();
+        //$this->saveDefaultConfig();
         $this->reloadConfig();
         $this->saveResource("config.yml", false);//aqui criamos o nosso arquivo config.yml caso ele não exista. ps o arquivo base config.yml deve estar na pasta resources
 		
