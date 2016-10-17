@@ -11,9 +11,13 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
 use pocketmine\event\Listener;
-use pocketmine\event\player\PlayerCommandPreprocessEvent;
 use pocketmine\event\player\PlayerCommandProcessEvent;
 use pocketmine\Player;
+use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\event\player\PlayerCommandPreprocessEvent;
+
+
+
 /*
 -------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------
@@ -33,7 +37,6 @@ use pocketmine\Player;
 */
 
 class TellBlock extends PluginBase implements Listener{
-	
 	//Nessa variável carrego o arquivo de configuração do plugin, o arquivo config.yml que fica na pasta do plugin
 	private $config;
 	
@@ -62,7 +65,7 @@ class TellBlock extends PluginBase implements Listener{
 		//No caso $this->getDataFolder() . "config.yml" - getDataFolder() retorna o caminho criado la na linha 53
         $this->config = new Config($this->getDataFolder() . "config.yml");
 
-        //$this->getServer()->getPluginManager()->registerEvents($this, $this);
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
 		//$this->getServer()->getScheduler()->scheduleRepeatingTask(new Tasks($this), 20);
 		$this->logOnConsole("Iniciado com sucesso");//e aqui mostramos no console que o plugin foi devidamente carregado
 		
@@ -92,7 +95,6 @@ class TellBlock extends PluginBase implements Listener{
 		self::$instance = $this;
 		
 	}
-	
 	/*E aqui temos a função responsável por fornecer os dados desse plugin a outros plugins
 	Se vc precisar de algum dado desse plugin bas criar um plugin e colocar nele a linha:
 	use beleche\TellBlock\TellBlock;
@@ -114,7 +116,7 @@ class TellBlock extends PluginBase implements Listener{
 	public function saveStatus(){
 		
 	}
-	
+
 	/*
 	E aqui finalmente começamos a fazer nosso plugin trabalhar
 	PlayerCommandPreprocessEvent é chamado sempre que algum jogador executa algum comando ex. /help, /tell, /pay, /tp, /gamemode
@@ -156,34 +158,59 @@ class TellBlock extends PluginBase implements Listener{
 						$event->setCancelled();//Aqui nos CANCELAMOS o envio do comando tell
 						$sender->sendMessage($this->logger . "O jogador que você tentou contactar decidiu não receber mensagens privadas.");//E aqui notificamos o jogador que o destinatário não receberá a mensagem.
 					}
+					
 				}
 				break;// com o break finalizamos os comandos do caso "tell"
 			
 		}
 	}
-	//Aqui temos os comandos do nosso plugin, no caso /tb tell
 	public function onCommand(CommandSender $sender,Command $command,$label,array $args){
-		
+		/*
+		Nesse função temos os parametros enviados para nós pelo servidor
+		$sender - Contem os dados do jogador que enviou o comando
+		$command - Contem os dados do comando executados
+		$label - Não iremo utiliza esse
+		$args - Uma array com todos os argumenti usados no comando
+		Argumentos são as palavras usadas depois do comando exemplo: /tell laurobeleche Posso ser mod?
+		Tell é o $command, laurobeleche é o $args[0], o resto é a mensagem.
+		no nosso caso o comando que queremos identificar é o /tb, e o argumento $args[0] que no caso deve ser tell, se qualquer outra
+		palavra for enviada no $args[0] a palavra será ignorada e retornaremos um erro ao jogador.
+		*/
 		switch($command)
 		{
 			case "tb":
-			if(isset($args[0])){
-				switch($args[0]){
-					case "tell":
-						if(isset($this->tells[strtolower($args[0])])){
-							unset($this->tells[strtolower($args[0])]);
-							$sender->sendMessage($this->logger . "Agora você receberá mensagens privadas novamente.");
-						}else{
-							$this->tells[strtolower($args[0])] = 1;
-							$sender->sendMessage($this->logger . "Você acaba de bloquear todas as mensagens privadas.");
-							$sender->sendMessage($this->logger . "Para desbloquear use /tb tell.");
+				//Aqui verificamos se o remetente do comando é um jogador, para evitar que o comando seja executado no console
+				if($sender instanceof Player){
+					if(isset($args[0])){
+						switch($args[0]){
+							case "tell":
+								/*
+								Nessa condicional verificamos se o nome do jogador ja está na lista de bloqueados,
+								se a condição for verdadeira ele remove da lista de bloqueados, se for falsa ele inclue na 
+								lista de bloqueados, é uma função bem simples, mas fundamental para o funcionamento do nosso plugin
+								*/
+								if(isset($this->tells[strtolower($sender->getName())])){
+									unset($this->tells[strtolower($sender->getName())]);
+									$sender->sendMessage($this->logger . "Agora você receberá mensagens privadas novamente.");
+								}else{
+									$this->tells[strtolower($sender->getName())] = 1;
+									$sender->sendMessage($this->logger . "Você acaba de bloquear todas as mensagens privadas.");
+									$sender->sendMessage($this->logger . "Para desbloquear use /tb tell.");
+									
+								}
+								return true;
+							DEFAULT:
+								return false;
 						}
 						return true;
+					}else{
+						return false;
+					}
+				}else{
+					$sender->sendMessage($this->logger . "Esse comando funcionará apenas no jogo.");
+					return true;
 				}
-				return true;
-			}else{
 				
-			}
 		}
 	}
 }
