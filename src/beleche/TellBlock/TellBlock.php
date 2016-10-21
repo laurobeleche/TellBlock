@@ -50,6 +50,7 @@ class TellBlock extends PluginBase implements Listener{
 	
 	//Aqui declaramos no Array que vai ser responsavel por guardar todos os jogadores que bloquearam o tell explicarei o que é array mais para frente
 	private $tells = [];
+	private $tpas = [];
 	
 	//Essa funcão é chamada na hora de habilitar nosso plugin
     public function onEnable(){
@@ -161,6 +162,16 @@ class TellBlock extends PluginBase implements Listener{
 					
 				}
 				break;// com o break finalizamos os comandos do caso "tell"
+			case "tpa":
+				if(isset($args[1])){
+					if(isset($this->tpas[strtolower($args[1])])){//aqui verificamos se o nome usado no tell está listado como bloqueado
+						//Esses comandos só serão executados se a condição for verdadeira
+						$event->setCancelled();//Aqui nos CANCELAMOS o envio do comando tell
+						$sender->sendMessage($this->logger . "Pedido de tpa recusado pelo jogador.");//E aqui notificamos o jogador que o destinatário não receberá a mensagem.
+					}
+					
+				}
+				break;
 			
 		}
 	}
@@ -196,6 +207,17 @@ class TellBlock extends PluginBase implements Listener{
 									$this->tells[strtolower($sender->getName())] = 1;
 									$sender->sendMessage($this->logger . "Você acaba de bloquear todas as mensagens privadas.");
 									$sender->sendMessage($this->logger . "Para desbloquear use /tb tell.");
+									
+								}
+								return true;
+							case "tpa":
+								if(isset($this->tpas[strtolower($sender->getName())])){
+									unset($this->tpas[strtolower($sender->getName())]);
+									$sender->sendMessage($this->logger . "Agora você pode receber tpas novamente");
+								}else{
+									$this->tpas[strtolower($sender->getName())] = 1;
+									$sender->sendMessage($this->logger . "Todos os tpas serão negados.");
+									$sender->sendMessage($this->logger . "Para desbloquear use /tb tpa.");
 									
 								}
 								return true;
